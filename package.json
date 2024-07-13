@@ -1,0 +1,96 @@
+{
+  "name": "django-access-controller",
+  "displayName": "Django Access Controller",
+  "description": "Django Access Controller is a Visual Studio Code extension that provides a set of commands to manage Django projects.",
+  "author": "Sunit Mal",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:django-tool.showCommands",
+    "onCommand:django-tool.create-project",
+    "onCommand:django-tool.run",
+    "onCommand:django-tool.run-server-port",
+    "onCommand:django-tool.start-app",
+    "onCommand:django-tool.make-migrations",
+    "onCommand:django-tool.migrate",
+    "onCommand:django-tool.create-superuser",
+    "onCommand:django-tool.collect-static"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "django-tool.showCommands",
+        "title": "Django All Commands"
+      },
+      {
+        "command": "django-tool.create-project",
+        "title": "Create Django Project"
+      },
+      {
+        "command": "django-tool.run",
+        "title": "Run Django Server"
+      },
+      {
+        "command": "django-tool.migrate",
+        "title": "Migrate Database"
+      },
+      {
+        "command": "django-tool.create-superuser",
+        "title": "Create Superuser"
+      },
+      {
+        "command": "django-tool.make-migrations",
+        "title": "Make Migrations"
+      },
+      {
+        "command": "django-tool.collect-static",
+        "title": "Collect Static"
+      },
+      {
+        "command": "django-tool.run-server-port",
+        "title": "Run Server with Port"
+      },
+      {
+        "command": "django-tool.start-app",
+        "title": "Start App"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "django-explorer",
+          "title": "Django Explorer",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "django-explorer": [
+        {
+          "id": "package-commands",
+          "name": "Commands"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.91.0",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0"
+  }
+}
