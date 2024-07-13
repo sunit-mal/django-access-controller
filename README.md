@@ -40,7 +40,7 @@ If you would like to contribute to this project, please feel free to submit a pu
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/sunit-mal/django-access-controller/blob/main/LICENSE) file for details.
 
 ## Author
 
