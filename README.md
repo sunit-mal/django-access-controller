@@ -4,6 +4,7 @@ Django Access Controller is a Visual Studio Code extension that provides a set o
 
 # Publish In VSCode marketplace
 ![imagepreview](https://github.com/user-attachments/assets/7d1737e3-0a25-4132-9611-48c955b6942a)
+![imagepreview](https://github.com/user-attachments/assets/cf9275bd-6a6f-41e5-8b74-64100fdb699a)
 
 ## Features
 
@@ -16,6 +17,8 @@ Django Access Controller is a Visual Studio Code extension that provides a set o
 - **Collect Static**: Gathers static files for production.
 - **Run Server with Port**: Starts the server on a specified port.
 - **Start App**: Creates a new Django application.
+- **Refresh Endpoints**: After create new end point first need to run this command.
+- **Enable Virtual Environment**: User can insert env path and after enable, user run django by using this env.
 
 ## Installation
 
@@ -36,6 +39,7 @@ You can run the following commands from the command palette (`Ctrl+Shift+P`):
 - **Collect Static**
 - **Run Server with Port**
 - **Start App**
+- **Refresh Endpoints**
 
 ## Contributing
 

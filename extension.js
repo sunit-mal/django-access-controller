@@ -1,13 +1,26 @@
 const vscode = require('vscode');
 const path = require('path');
+const fs = require('fs');
 
 let terminal;
 
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
+async function activate(context) {
+
+	let pythonEvnPath = vscode.workspace.getConfiguration('djangoAccessController').get('pythonEvnPath');
+	const pythonEnableEnv = vscode.workspace.getConfiguration('djangoAccessController').get('pythonEnableEnv');
+	pythonEvnPath = path.join(pythonEvnPath, 'Scripts', 'python.exe');
+
+	const pythonPath = pythonEnableEnv ? pythonEvnPath : 'python';
+
 	vscode.window.registerTreeDataProvider('package-commands', new DjangoExplorerProvider());
+	const endpointsProvider = new EndpointsProvider();
+	vscode.window.createTreeView('package-endpoints', { treeDataProvider: endpointsProvider });
+
+	vscode.commands.registerCommand('django-tool.refresh-endpoint', () => endpointsProvider.refresh());
+
 
 	const disposable = vscode.commands.registerCommand('django-tool.showCommands', function () {
 		vscode.window.showQuickPick([
@@ -59,8 +72,8 @@ function activate(context) {
 	});
 
 	const runServer = vscode.commands.registerCommand('django-tool.run', function () {
-		runCommandInTerminal('python manage.py runserver');
-		vscode.window.showInformationMessage('python manage.py runserver', 'Open Browser').then((value) => {
+		runCommandInTerminal(`${pythonPath} manage.py runserver`);
+		vscode.window.showInformationMessage(`${pythonPath} manage.py runserver`, 'Open Browser').then((value) => {
 			;
 			if (value === 'Open Browser')
 				vscode.env.openExternal(vscode.Uri.parse('http://localhost:8000/'));
@@ -77,7 +90,7 @@ function activate(context) {
 				if (!port) {
 					port = 8000;
 				}
-				runCommandInTerminal(`python manage.py runserver ${ip}:${port}`);
+				runCommandInTerminal(`${pythonPath} manage.py runserver ${ip}:${port}`);
 				vscode.window.showInformationMessage(`python manage.py runserver ${ip}:${port}`, 'Open Browser').then((value) => {
 					if (value === 'Open Browser')
 						vscode.env.openExternal(vscode.Uri.parse(`http://${ip}:${port}/`));
@@ -92,44 +105,146 @@ function activate(context) {
 				vscode.window.showErrorMessage("Please provide valid App Name");
 				return
 			};
-			runCommandInTerminal(`python manage.py startapp ${appName}`);
+			runCommandInTerminal(`${pythonPath} manage.py startapp ${appName}`);
 			vscode.window.showInformationMessage(`python manage.py startapp ${appName}`);
 		});
 	});
 
 	const makemigrations = vscode.commands.registerCommand('django-tool.make-migrations', function () {
-		runCommandInTerminal('python manage.py makemigrations');
+		runCommandInTerminal(`${pythonPath} manage.py makemigrations`);
 		vscode.window.showInformationMessage('python manage.py makemigrations');
 	});
 
 
 	const migrate = vscode.commands.registerCommand('django-tool.migrate', function () {
-		runCommandInTerminal('python manage.py migrate');
+		runCommandInTerminal(`${pythonPath} manage.py migrate`);
 		vscode.window.showInformationMessage('python manage.py migrate');
 	});
 
 	const createSuperUser = vscode.commands.registerCommand('django-tool.create-superuser', function () {
-		runCommandInTerminal('python manage.py createsuperuser');
+		runCommandInTerminal(`${pythonPath} manage.py createsuperuser`);
 		vscode.window.showInformationMessage('python manage.py createsuperuser');
 	});
 
 	const collectStatic = vscode.commands.registerCommand('django-tool.collect-static', function () {
-		runCommandInTerminal('python manage.py collectstatic');
+		runCommandInTerminal(`${pythonPath} manage.py collectstatic`);
 		vscode.window.showInformationMessage('python manage.py collectstatic');
 	});
 
 	context.subscriptions.push(disposable, runServer, migrate, createSuperUser, runServerPort, createProject, collectStatic, startApp, makemigrations);
+}
 
+class EndpointsProvider {
+	constructor() {
+		this._onDidChangeTreeData = new vscode.EventEmitter();
+		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+		this.endpoints = [];
+	}
+
+	refresh() {
+		this.endpoints = [];
+		this._onDidChangeTreeData.fire();
+	}
+
+	async getChildren(element) {
+		if (!element) {
+			const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+			if (!workspaceFolder) {
+				vscode.window.showErrorMessage('No open workspace');
+				return [];
+			}
+
+			const filePaths = await vscode.workspace.findFiles('**/urls.py', null, 10);
+
+			if (!filePaths.length) {
+				vscode.window.showErrorMessage('File not found: urls.py');
+				return [];
+			}
+
+			for (const filePath of filePaths) {
+				try {
+					const fileContent = await fs.promises.readFile(filePath.fsPath, 'utf-8');
+					const extractedData = extractUrlsFromContent(fileContent, filePath);
+					this.endpoints.push(...extractedData.map(data => new UrlTreeItem(data.name, data.filePath, data.lineNumber)));
+				} catch (error) {
+					// console.error('Error processing file:', error);
+					vscode.window.showErrorMessage('Error processing file: ' + error.message);
+				}
+			}
+
+			return this.endpoints;
+		}
+		return [];
+	}
+
+	getTreeItem(element) {
+		return element;
+	}
+}
+
+class UrlTreeItem extends vscode.TreeItem {
+	constructor(name, filePath, lineNumber) {
+		super(name, vscode.TreeItemCollapsibleState.None);
+		this.name = name;
+		this.filePath = filePath;
+		this.lineNumber = lineNumber;
+		this.command = {
+			command: 'vscode.open',
+			title: '',
+			arguments: [vscode.Uri.file(filePath), { selection: new vscode.Range(new vscode.Position(lineNumber, 0), new vscode.Position(lineNumber, 0)) }]
+		};
+		this.label = `/${this.name}`;
+		this.tooltip = `${this.name} - ${this.filePath}`;
+		this.iconPath = new vscode.ThemeIcon('link');
+	}
+}
+
+function extractUrlsFromContent(content, filePath) {
+	// const regex = /path\(['"]([^'"]+)['"]/g;
+	// const matches = [];
+	// const lines = content.split('\n');
+	// lines.forEach((line, index) => {
+	// 	let match;
+	// 	while ((match = regex.exec(line)) !== null) {
+	// 		matches.push({ name: match[1], filePath: filePath.fsPath, lineNumber: index });
+	// 	}
+	// });
+	// return matches;
+	const urlPatternRegex = /urlpatterns\s*=\s*\[([\s\S]*?)\]/g;
+    const pathRegex = /path\(['"]([^'"]+)['"],\s*([^)]+)\)/g;
+
+    const matches = [];
+    let urlPatternMatch;
+
+    while ((urlPatternMatch = urlPatternRegex.exec(content)) !== null) {
+        const urlPatternsContent = urlPatternMatch[1];
+
+        let pathMatch;
+        const lines = urlPatternsContent.split('\n');
+        lines.forEach((line, index) => {
+            while ((pathMatch = pathRegex.exec(line)) !== null) {
+                matches.push({
+                    name: pathMatch[1],
+                    viewFunction: pathMatch[2],
+                    filePath: filePath.fsPath,
+                    lineNumber: index
+                });
+            }
+        });
+    }
+
+    return matches;
 }
 
 
+
 function runCommandInTerminal(command) {
-    if (!terminal || terminal.exitStatus !== undefined) {
-        terminal = vscode.window.createTerminal('Django Terminal');
-    }
-    
-    terminal.show();
-    terminal.sendText(command);
+	if (!terminal || terminal.exitStatus !== undefined) {
+		terminal = vscode.window.createTerminal('Django Terminal');
+	}
+
+	terminal.show();
+	terminal.sendText(command);
 }
 
 
@@ -166,14 +281,16 @@ class ActionTreeItem extends vscode.TreeItem {
 			command: `django-tool.${command}`,
 			title: label
 		};
-		const iconPathLight = path.join(__filename, '..', 'resources', 'play.svg');
+		// const iconPathLight = path.join(__filename, '..', 'resources', 'play.svg');
 
-		this.iconPath = {
-			light: iconPathLight,
-			dark: iconPathLight
-		};
+		// this.iconPath = {
+		// 	light: iconPathLight,
+		// 	dark: iconPathLight
+		// };
+		this.iconPath = new vscode.ThemeIcon('run');
 	}
 }
+
 
 module.exports = {
 	activate,
