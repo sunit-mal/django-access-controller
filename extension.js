@@ -165,7 +165,7 @@ class EndpointsProvider {
 				try {
 					const fileContent = await fs.promises.readFile(filePath.fsPath, 'utf-8');
 					const extractedData = extractUrlsFromContent(fileContent, filePath);
-					this.endpoints.push(...extractedData.map(data => new UrlTreeItem(data.name, data.filePath, data.lineNumber)));
+					this.endpoints.push(...extractedData.map(data => new UrlTreeItem(data.name,data.viewFunction, data.filePath, data.lineNumber)));
 				} catch (error) {
 					// console.error('Error processing file:', error);
 					vscode.window.showErrorMessage('Error processing file: ' + error.message);
@@ -183,18 +183,19 @@ class EndpointsProvider {
 }
 
 class UrlTreeItem extends vscode.TreeItem {
-	constructor(name, filePath, lineNumber) {
+	constructor(name,viewFunction, filePath, lineNumber) {
 		super(name, vscode.TreeItemCollapsibleState.None);
 		this.name = name;
 		this.filePath = filePath;
 		this.lineNumber = lineNumber;
+		this.viewFunction = viewFunction;
 		this.command = {
 			command: 'vscode.open',
 			title: '',
 			arguments: [vscode.Uri.file(filePath), { selection: new vscode.Range(new vscode.Position(lineNumber, 0), new vscode.Position(lineNumber, 0)) }]
 		};
 		this.label = `/${this.name}`;
-		this.tooltip = `${this.name} - ${this.filePath}`;
+		this.tooltip = `${this.name} - (${this.viewFunction}) - ${this.filePath}`;
 		this.iconPath = new vscode.ThemeIcon('link');
 	}
 }
@@ -211,32 +212,32 @@ function extractUrlsFromContent(content, filePath) {
 	// });
 	// return matches;
 	const urlPatternRegex = /urlpatterns\s*=\s*\[([\s\S]*?)\]/g;
-    const pathRegex = /path\(['"]([^'"]+)['"],\s*([^)]+)\)/g;
-
+	const pathRegex = /path\(['"]([^'"]+)['"],\s*([^)]+)\)/g;
+  
     const matches = [];
-    let urlPatternMatch;
-
-    while ((urlPatternMatch = urlPatternRegex.exec(content)) !== null) {
-        const urlPatternsContent = urlPatternMatch[1];
-
-        let pathMatch;
-        const lines = urlPatternsContent.split('\n');
-        lines.forEach((line, index) => {
-            while ((pathMatch = pathRegex.exec(line)) !== null) {
+	let urlPatternMatch;
+  
+	while ((urlPatternMatch = urlPatternRegex.exec(content)) !== null) {
+	  const urlPatternsContent = urlPatternMatch[1];
+  
+	  let pathMatch;
+	  const lines = urlPatternsContent.split('\n');
+	  lines.forEach((line, index) => {
+		while ((pathMatch = pathRegex.exec(line)) !== null) {
                 matches.push({
                     name: pathMatch[1],
                     viewFunction: pathMatch[2],
                     filePath: filePath.fsPath,
-                    lineNumber: index
-                });
-            }
-        });
-    }
-
+			lineNumber: index
+		  });
+		}
+	  });
+	}
+  
     return matches;
-}
-
-
+  }
+  
+  
 
 function runCommandInTerminal(command) {
 	if (!terminal || terminal.exitStatus !== undefined) {
