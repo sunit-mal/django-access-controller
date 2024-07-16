@@ -378,7 +378,8 @@ class DjangoFormsProvider {
 				text-decoration: underline;
 			  }
 			  pre {
-				background: #f4f4f4;
+				background: #5531b2;
+				color: white;
 				padding: 10px;
 				border: 1px solid #ddd;
 				overflow: auto;
