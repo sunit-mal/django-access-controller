@@ -1,6 +1,8 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
+const marked = require('marked');
 
 let terminal;
 
@@ -131,7 +133,17 @@ async function activate(context) {
 		vscode.window.showInformationMessage('python manage.py collectstatic');
 	});
 
-	context.subscriptions.push(disposable, runServer, migrate, createSuperUser, runServerPort, createProject, collectStatic, startApp, makemigrations);
+	const searchQueryByAI = vscode.commands.registerCommand('django-tool.searchByAI', function () {
+		vscode.window.showInputBox({ prompt: "Enter Search Query" }).then((query) => {
+			if (!query) {
+				vscode.window.showErrorMessage("Please provide valid Search Query");
+				return
+			};
+			searchByAI(query, context);
+		});
+	});
+
+	context.subscriptions.push(disposable, runServer, migrate, createSuperUser, runServerPort, createProject, collectStatic, startApp, makemigrations, searchQueryByAI);
 }
 
 class EndpointsProvider {
@@ -165,7 +177,7 @@ class EndpointsProvider {
 				try {
 					const fileContent = await fs.promises.readFile(filePath.fsPath, 'utf-8');
 					const extractedData = extractUrlsFromContent(fileContent, filePath);
-					this.endpoints.push(...extractedData.map(data => new UrlTreeItem(data.name,data.viewFunction, data.filePath, data.lineNumber)));
+					this.endpoints.push(...extractedData.map(data => new UrlTreeItem(data.name, data.viewFunction, data.filePath, data.lineNumber)));
 				} catch (error) {
 					// console.error('Error processing file:', error);
 					vscode.window.showErrorMessage('Error processing file: ' + error.message);
@@ -183,7 +195,7 @@ class EndpointsProvider {
 }
 
 class UrlTreeItem extends vscode.TreeItem {
-	constructor(name,viewFunction, filePath, lineNumber) {
+	constructor(name, viewFunction, filePath, lineNumber) {
 		super(name, vscode.TreeItemCollapsibleState.None);
 		this.name = name;
 		this.filePath = filePath;
@@ -213,31 +225,31 @@ function extractUrlsFromContent(content, filePath) {
 	// return matches;
 	const urlPatternRegex = /urlpatterns\s*=\s*\[([\s\S]*?)\]/g;
 	const pathRegex = /path\(['"]([^'"]+)['"],\s*([^)]+)\)/g;
-  
-    const matches = [];
+
+	const matches = [];
 	let urlPatternMatch;
-  
+
 	while ((urlPatternMatch = urlPatternRegex.exec(content)) !== null) {
-	  const urlPatternsContent = urlPatternMatch[1];
-  
-	  let pathMatch;
-	  const lines = urlPatternsContent.split('\n');
-	  lines.forEach((line, index) => {
-		while ((pathMatch = pathRegex.exec(line)) !== null) {
-                matches.push({
-                    name: pathMatch[1],
-                    viewFunction: pathMatch[2],
-                    filePath: filePath.fsPath,
-			lineNumber: index
-		  });
-		}
-	  });
+		const urlPatternsContent = urlPatternMatch[1];
+
+		let pathMatch;
+		const lines = urlPatternsContent.split('\n');
+		lines.forEach((line, index) => {
+			while ((pathMatch = pathRegex.exec(line)) !== null) {
+				matches.push({
+					name: pathMatch[1],
+					viewFunction: pathMatch[2],
+					filePath: filePath.fsPath,
+					lineNumber: index
+				});
+			}
+		});
 	}
-  
-    return matches;
-  }
-  
-  
+
+	return matches;
+}
+
+
 
 function runCommandInTerminal(command) {
 	if (!terminal || terminal.exitStatus !== undefined) {
@@ -270,6 +282,7 @@ class DjangoExplorerProvider {
 			new ActionTreeItem('Migrate Database', 'Migrate the database', 'migrate'),
 			new ActionTreeItem('Create Superuser', 'Create a Django superuser', 'create-superuser'),
 			new ActionTreeItem('Collect Static', 'Collect static files', 'collect-static'),
+			new ActionTreeItem('AI Assistant', 'Search Your Query By Gemini', 'searchByAI'),
 		]);
 	}
 }
@@ -289,6 +302,100 @@ class ActionTreeItem extends vscode.TreeItem {
 		// 	dark: iconPathLight
 		// };
 		this.iconPath = new vscode.ThemeIcon('run');
+	}
+}
+
+async function searchByAI(searchTerm, context) {
+	const djangoFormsProvider = new DjangoFormsProvider(context.extensionUri);
+	const key = vscode.workspace.getConfiguration('djangoAccessController').get('geminiSecretKey');
+
+	if (!key) {
+		vscode.window.showErrorMessage('Please provide a valid API key');
+		return;
+	}
+
+	let request = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${key}`;
+
+	let userText = searchTerm + " in Django";
+	const data = {
+		contents: [
+			{
+				role: "user",
+				parts: [
+					{
+						text: userText
+					}
+				]
+			}
+		]
+	};
+
+	const headers = {
+		'Content-Type': 'application/json',
+	};
+
+	try {
+		const response = await axios.post(request, data, { headers });
+		const content = response.data.candidates[0].content.parts[0].text;
+
+		const htmlContent = marked.parse(content);
+		if (htmlContent) {
+			const panel = vscode.window.createWebviewPanel(
+				'djangoForms',
+				'Django Forms Documentation',
+				vscode.ViewColumn.One,
+				{
+					enableScripts: true
+				}
+			);
+			panel.webview.html = djangoFormsProvider.fetchAndGetHtml(htmlContent, userText);
+		}
+	} catch (error) {
+		vscode.window.showErrorMessage(error.message);
+	}
+}
+
+class DjangoFormsProvider {
+	constructor(extensionUri) {
+		this.extensionUri = extensionUri;
+	}
+
+	fetchAndGetHtml(content, heading) {
+		return `
+		  <!DOCTYPE html>
+		  <html lang="en">
+		  <head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Django Forms Documentation</title>
+			<style>
+			  body {
+				font-family: Arial, sans-serif;
+				padding: 10px;
+			  }
+			  a {
+				color: blue;
+				text-decoration: underline;
+			  }
+			  pre {
+				background: #f4f4f4;
+				padding: 10px;
+				border: 1px solid #ddd;
+				overflow: auto;
+			  }
+			  code {
+				font-family: monospace;
+			  }
+			</style>
+		  </head>
+		  <body>
+			<h3>Request : ${heading}</h3>
+			<div>
+			${content}
+			</div>
+		  </body>
+		  </html>
+		`;
 	}
 }
 
