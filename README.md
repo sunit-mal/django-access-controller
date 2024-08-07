@@ -1,5 +1,4 @@
-# Django Access Controller [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/SUNITMAL.django-access-controller)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller) [![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/SUNITMAL.django-access-controller)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller) [![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/SUNITMAL.django-access-controller)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller)
-
+# Django Access Controller [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/SUNITMAL.django-access-controller?include_prereleases&style=plastic&color=light%20green)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller) [![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/SUNITMAL.django-access-controller?style=plastic&color=blue)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller)
 
 
 
