@@ -22,3 +22,4 @@
 - **Model Generator:** User can able to create model and also link with admin via some few steps.
 
 [0.0.8]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.0.8
+[0.0.9]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.0.9
