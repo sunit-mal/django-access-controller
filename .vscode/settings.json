@@ -4,5 +4,6 @@
         "makemigrations",
         "runserver",
         "urlpatterns"
-    ]
+    ],
+    "git.ignoreLimitWarning": true
 }
