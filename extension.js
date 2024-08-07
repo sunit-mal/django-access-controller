@@ -1,10 +1,14 @@
 const vscode = require('vscode');
 const path = require('path');
-const fs = require('fs');
 const axios = require('axios');
 const marked = require('marked');
+const ModelTreeDataProvider = require('./Helper/modelTreeProvider');
+const ModelGenerator = require('./Helper/ModelCreate');
+const ActionTreeItem = require('./Helper/ActionItem');
+const EndpointsProvider = require('./Helper/EndpointsProvider');
 
 let terminal;
+let loadModel = [];
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -103,6 +107,10 @@ async function activate(context) {
 
 	const startApp = vscode.commands.registerCommand('django-tool.start-app', function () {
 		vscode.window.showInputBox({ prompt: "Enter App Name" }).then((appName) => {
+			// Remove white spaces from model name
+			if(appName.includes(" ")){
+				appName = appName.replaceAll(/\s+/g, '_');
+			}
 			if (!appName) {
 				vscode.window.showErrorMessage("Please provide valid App Name");
 				return
@@ -116,7 +124,6 @@ async function activate(context) {
 		runCommandInTerminal(`${pythonPath} manage.py makemigrations`);
 		vscode.window.showInformationMessage('python manage.py makemigrations');
 	});
-
 
 	const migrate = vscode.commands.registerCommand('django-tool.migrate', function () {
 		runCommandInTerminal(`${pythonPath} manage.py migrate`);
@@ -143,113 +150,152 @@ async function activate(context) {
 		});
 	});
 
-	context.subscriptions.push(disposable, runServer, migrate, createSuperUser, runServerPort, createProject, collectStatic, startApp, makemigrations, searchQueryByAI);
-}
+	const modelTreeDataProvider = new ModelTreeDataProvider();
+	const modelGenerator = new ModelGenerator();
 
-class EndpointsProvider {
-	constructor() {
-		this._onDidChangeTreeData = new vscode.EventEmitter();
-		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-		this.endpoints = [];
-	}
+	vscode.window.createTreeView('package-models', { treeDataProvider: modelTreeDataProvider });
 
-	refresh() {
-		this.endpoints = [];
-		this._onDidChangeTreeData.fire();
-	}
+	const modelGen = vscode.commands.registerCommand('django-tool.model-gen', async function () {
+		let fileUri = await vscode.workspace.findFiles('**/models.py', null, 10);
+		let selectedOption = fileUri[0].fsPath;
+		let options = fileUri.map((file) => file.fsPath);
+		if (fileUri && fileUri.length > 1) {
+			selectedOption = await vscode.window.showQuickPick(options, {
+				placeHolder: 'Select a Model file'
+			});
+		}
 
-	async getChildren(element) {
-		if (!element) {
-			const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
-			if (!workspaceFolder) {
-				vscode.window.showErrorMessage('No open workspace');
-				return [];
-			}
+		if (selectedOption) {
+			let modelStructure = [];
+			let continueLoop = true;
 
-			const filePaths = await vscode.workspace.findFiles('**/urls.py', null, 10);
+			while (continueLoop) {
+				const processOptions = ["Create Table", "Submit"];
+				const selectedOption = await vscode.window.showQuickPick(processOptions, {
+					placeHolder: 'Select an option'
+				});
 
-			if (!filePaths.length) {
-				vscode.window.showErrorMessage('File not found: urls.py');
-				return [];
-			}
+				if (selectedOption === "Submit") {
+					if (loadModel.length > 0) {
+						modelStructure = loadModel;
+					}
+					continueLoop = false;
+					break;
+				} else if (selectedOption === "Create Table") {
+					let modelName = await vscode.window.showInputBox({ prompt: "Enter Table Name" });
+					// Remove white spaces from model name
+					if(modelName.includes(" ")){
+						modelName = modelName.replaceAll(/\s+/g, '_');
+					}
+					let Fields = [];
+					let isFieldMore = true;
+					while (isFieldMore) {
+						const processOptions = ["Add Field", "Process"];
+						const selectedOption = await vscode.window.showQuickPick(processOptions, {
+							placeHolder: 'Select an option'
+						});
 
-			for (const filePath of filePaths) {
-				try {
-					const fileContent = await fs.promises.readFile(filePath.fsPath, 'utf-8');
-					const extractedData = extractUrlsFromContent(fileContent, filePath);
-					this.endpoints.push(...extractedData.map(data => new UrlTreeItem(data.name, data.viewFunction, data.filePath, data.lineNumber)));
-				} catch (error) {
-					// console.error('Error processing file:', error);
-					vscode.window.showErrorMessage('Error processing file: ' + error.message);
+						if (selectedOption === "Process") {
+							isFieldMore = false;
+							break;
+						} else if (selectedOption === "Add Field") {
+							let filedName = await vscode.window.showInputBox({ prompt: "Enter Field Name" });
+							// Remove white spaces from field name
+							if(filedName.includes(" ")){
+								filedName = filedName.replaceAll(/\s+/g, '_');
+							}
+
+							if (!filedName) {
+								vscode.window.showErrorMessage("Please provide a valid Field Name");
+								continue;
+							}
+
+							const fieldOptions = ["CharField", "IntegerField", "BooleanField", "DateField", "DateTimeField", "DecimalField", "EmailField", "FileField", "FloatField", "ImageField", "SlugField", "TextField", "TimeField", "URLField"];
+							const fieldType = await vscode.window.showQuickPick(fieldOptions, {
+								placeHolder: 'Select a Field Type'
+							});
+
+							if (fieldType) {
+								Fields.push({ filedName, fieldType });
+
+								const modelIndex = modelStructure.findIndex((item) => item.tableName === modelName);
+								if (modelIndex === -1) {
+									modelStructure.push({ tableName: modelName, fields: Fields });
+								} else {
+									modelStructure[modelIndex].fields.push(...Fields); // Spread operator to push individual fields
+								}
+
+								loadModel = modelStructure;
+								modelTreeDataProvider.setModelStructure(loadModel);
+								Fields = []; // Clear Fields array after pushing
+
+							} else {
+								vscode.window.showErrorMessage("No Field Type selected.");
+							}
+						} else {
+							vscode.window.showWarningMessage("Invalid option selected.");
+						}
+					}
+
+					if (!modelName) {
+						vscode.window.showErrorMessage("Please provide a valid Table Name");
+						continue;
+					}
+
+					if (Fields.length > 0 && modelStructure.findIndex((item) => item.tableName === modelName) === -1) {
+						modelStructure.push({ tableName: modelName, fields: Fields });
+						loadModel = modelStructure
+						modelTreeDataProvider.setModelStructure(loadModel);
+						Fields = []; // Clear Fields array after pushing
+					}
+
+				} else {
+					vscode.window.showWarningMessage("Invalid option selected.");
 				}
 			}
 
-			return this.endpoints;
-		}
-		return [];
-	}
+			const quickPickItems = modelStructure.map(item => ({
+				label: item.tableName,
+				description: item.fields.map(field => `${field.filedName} - ${field.fieldType}`).join(', ')
+			}));
 
-	getTreeItem(element) {
-		return element;
-	}
-}
+			const structure = await vscode.window.showQuickPick(quickPickItems, {
+				placeHolder: 'Select Tables',
+				canPickMany: true
+			});
 
-class UrlTreeItem extends vscode.TreeItem {
-	constructor(name, viewFunction, filePath, lineNumber) {
-		super(name, vscode.TreeItemCollapsibleState.None);
-		this.name = name;
-		this.filePath = filePath;
-		this.lineNumber = lineNumber;
-		this.viewFunction = viewFunction;
-		this.command = {
-			command: 'vscode.open',
-			title: '',
-			arguments: [vscode.Uri.file(filePath), { selection: new vscode.Range(new vscode.Position(lineNumber, 0), new vscode.Position(lineNumber, 0)) }]
-		};
-		this.label = `/${this.name}`;
-		this.tooltip = `${this.name} - (${this.viewFunction}) - ${this.filePath}`;
-		this.iconPath = new vscode.ThemeIcon('link');
-	}
-}
-
-function extractUrlsFromContent(content, filePath) {
-	// const regex = /path\(['"]([^'"]+)['"]/g;
-	// const matches = [];
-	// const lines = content.split('\n');
-	// lines.forEach((line, index) => {
-	// 	let match;
-	// 	while ((match = regex.exec(line)) !== null) {
-	// 		matches.push({ name: match[1], filePath: filePath.fsPath, lineNumber: index });
-	// 	}
-	// });
-	// return matches;
-	const urlPatternRegex = /urlpatterns\s*=\s*\[([\s\S]*?)\]/g;
-	const pathRegex = /path\(['"]([^'"]+)['"],\s*([^)]+)\)/g;
-
-	const matches = [];
-	let urlPatternMatch;
-
-	while ((urlPatternMatch = urlPatternRegex.exec(content)) !== null) {
-		const urlPatternsContent = urlPatternMatch[1];
-
-		let pathMatch;
-		const lines = urlPatternsContent.split('\n');
-		lines.forEach((line, index) => {
-			while ((pathMatch = pathRegex.exec(line)) !== null) {
-				matches.push({
-					name: pathMatch[1],
-					viewFunction: pathMatch[2],
-					filePath: filePath.fsPath,
-					lineNumber: index
+			if (structure) {
+				let modelsFileInformation = modelStructure.filter((item) => {
+					return structure.find((selectedItem) => selectedItem.label === item.tableName);
 				});
+
+				let loadModel = modelStructure.filter((item) => {
+					return structure.find((selectedItem) => selectedItem.label === item.tableName);
+				});
+
+				modelTreeDataProvider.setModelStructure(loadModel); // update
+
+				modelsFileInformation.forEach((item) => {
+					if (item.fields.length <= 0 || item.tableName === "" || item.tableName === undefined) {
+						vscode.window.showWarningMessage('Select Table Name and Fields format incorrect.');
+						modelsFileInformation = [];
+						loadModel = [];
+					}
+				})
+
+				if (modelsFileInformation.length > 0) {
+					modelGenerator.modelCreate(modelsFileInformation, selectedOption);
+					loadModel = [];
+					modelTreeDataProvider.setModelStructure(loadModel); // refresh
+				}
+			} else {
+				vscode.window.showWarningMessage('No file selected.');
 			}
-		});
-	}
+		}
+	});
 
-	return matches;
+	context.subscriptions.push(disposable, runServer, migrate, createSuperUser, runServerPort, createProject, collectStatic, startApp, makemigrations, searchQueryByAI, modelGen);
 }
-
-
 
 function runCommandInTerminal(command) {
 	if (!terminal || terminal.exitStatus !== undefined) {
@@ -259,7 +305,6 @@ function runCommandInTerminal(command) {
 	terminal.show();
 	terminal.sendText(command);
 }
-
 
 function deactivate() {
 	if (terminal) {
@@ -283,25 +328,8 @@ class DjangoExplorerProvider {
 			new ActionTreeItem('Create Superuser', 'Create a Django superuser', 'create-superuser'),
 			new ActionTreeItem('Collect Static', 'Collect static files', 'collect-static'),
 			new ActionTreeItem('AI Assistant', 'Search Your Query By Gemini', 'searchByAI'),
+			new ActionTreeItem('Create Model In Project', 'Make a Model', 'model-gen'),
 		]);
-	}
-}
-
-class ActionTreeItem extends vscode.TreeItem {
-	constructor(label, tooltip, command) {
-		super(label, vscode.TreeItemCollapsibleState.None);
-		this.tooltip = tooltip;
-		this.command = {
-			command: `django-tool.${command}`,
-			title: label
-		};
-		// const iconPathLight = path.join(__filename, '..', 'resources', 'play.svg');
-
-		// this.iconPath = {
-		// 	light: iconPathLight,
-		// 	dark: iconPathLight
-		// };
-		this.iconPath = new vscode.ThemeIcon('run');
 	}
 }
 

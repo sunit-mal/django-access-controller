@@ -4,7 +4,7 @@
   "description": "Django Access Controller is a Visual Studio Code extension that provides a set of commands to manage Django projects.",
   "publisher": "SUNITMAL",
   "icon": "resources/extentionIcon.jpg",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "engines": {
     "vscode": "^1.91.0"
   },
@@ -25,7 +25,8 @@
     "onCommand:django-tool.create-superuser",
     "onCommand:django-tool.collect-static",
     "onCommand:django-tool.refresh-endpoint",
-    "onCommand:django-tool.searchByAI"
+    "onCommand:django-tool.searchByAI",
+    "onCommand:django-tool.model-gen"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -73,6 +74,10 @@
       {
         "command": "django-tool.searchByAI",
         "title": "Search By GEMINI"
+      },
+      {
+        "command": "django-tool.model-gen",
+        "title": "Model Generator"
       }
     ],
     "viewsContainers": {
@@ -93,6 +98,10 @@
         {
           "id": "package-endpoints",
           "name": "Endpoints"
+        },
+        {
+          "id": "package-models",
+          "name": "Model Structure"
         }
       ]
     },
@@ -134,6 +143,7 @@
   },
   "dependencies": {
     "axios": "^1.7.2",
+    "django-access-controller": "file:",
     "marked": "^13.0.2"
   }
 }
