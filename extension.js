@@ -328,7 +328,7 @@ class DjangoExplorerProvider {
 			new ActionTreeItem('Create Superuser', 'Create a Django superuser', 'create-superuser'),
 			new ActionTreeItem('Collect Static', 'Collect static files', 'collect-static'),
 			new ActionTreeItem('AI Assistant', 'Search Your Query By Gemini', 'searchByAI'),
-			new ActionTreeItem('Create Model In Project', 'Make a Model', 'model-gen'),
+			new ActionTreeItem('Make a Model', 'Create Model and Link with Admin', 'model-gen'),
 		]);
 	}
 }

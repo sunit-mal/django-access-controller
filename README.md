@@ -8,6 +8,7 @@ Django Access Controller is a Visual Studio Code extension that provides a set o
 ![imagePreview](https://github.com/user-attachments/assets/d902ed51-915d-4811-a2e4-e09c537a0152)
 ![imagePreview](https://github.com/user-attachments/assets/ac756e04-7adb-4a63-b890-235ba75c64d5)
 ![imagePreview](https://github.com/user-attachments/assets/24f90f9a-7c2f-4047-b302-5077a4f720dc)
+![videoPreview](https://github.com/user-attachments/assets/796485ee-924b-4235-8b30-723fb4d9e714)
 
 ## Features
 
@@ -23,6 +24,7 @@ Django Access Controller is a Visual Studio Code extension that provides a set o
 - **Refresh Endpoints**: After create new end point first need to run this command.
 - **Enable Virtual Environment**: User can insert env path and after enable, user run django by using this env.
 - **Gemini Assistant**: User can able to ask their query to gemini from vs code.
+- **Model Generator**: User can able to create model and also link with admin via some few steps.
 
 ## Installation
 
@@ -45,6 +47,7 @@ You can run the following commands from the command palette (`Ctrl+Shift+P`):
 - **Start App**
 - **Refresh Endpoints**
 - **Search By GEMINI**
+- **Model Generator**
 
 ## Contributing
 
@@ -59,4 +62,3 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 Sunit Mal  
 [LinkedIn](https://www.linkedin.com/in/sunit-mal/)
-
