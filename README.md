@@ -1,4 +1,7 @@
-# Django Access Controller
+# Django Access Controller [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/SUNITMAL.django-access-controller)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller) [![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/SUNITMAL.django-access-controller)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller) [![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/SUNITMAL.django-access-controller)](https://marketplace.visualstudio.com/items?itemName=SUNITMAL.django-access-controller)
+
+
+
 
 Django Access Controller is a Visual Studio Code extension that provides a set of commands to easily manage Django projects. It also offers a list of endpoints used in the application. Additionally, version 0.0.3 allows users to run projects using a Python environment configured within the extension settings.
 
