@@ -4,7 +4,6 @@
 ### Fixed
 - Maintain changelog file for user understandability.
 
-- maintain changelog file for user understandability.
 ## [0.0.8] - 2024-08-07
 ### Added
 
