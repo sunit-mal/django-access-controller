@@ -8,8 +8,7 @@ Django Access Controller is a Visual Studio Code extension that provides a set o
 ![imagePreview](https://github.com/user-attachments/assets/d902ed51-915d-4811-a2e4-e09c537a0152)
 ![imagePreview](https://github.com/user-attachments/assets/ac756e04-7adb-4a63-b890-235ba75c64d5)
 ![imagePreview](https://github.com/user-attachments/assets/24f90f9a-7c2f-4047-b302-5077a4f720dc)
-![imagePreview](https://github.com/mrsunit7/custome_gif_upload/blob/main/ExtentionGif/My%20Video.gif)
-![videoPreview](https://github.com/user-attachments/assets/7d79b6dc-23e8-463f-88e9-fc928d44337)
+[![imagePreview](https://github.com/mrsunit7/custome_gif_upload/blob/main/ExtentionGif/My%20Video.gif)](https://github.com/user-attachments/assets/796485ee-924b-4235-8b30-723fb4d9e714)
 
 ## Features
 
