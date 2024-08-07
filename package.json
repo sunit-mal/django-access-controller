@@ -14,6 +14,18 @@
     "AI",
     "Extension Packs"
   ],
+  "keywords": [
+    "django",
+    "assitent",
+    "django-controller",
+    "django-assitent",
+    "one-click ready"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sunit-mal/django-access-controller.git"
+  },
+  "homepage": "https://github.com/sunit-mal/django-access-controller/blob/main/README.md",
   "activationEvents": [
     "onCommand:django-tool.showCommands",
     "onCommand:django-tool.create-project",
