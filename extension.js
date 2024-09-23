@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const path = require('path');
 const axios = require('axios');
 const marked = require('marked');
+const { exec } = require('child_process');
 const ModelTreeDataProvider = require('./Helper/modelTreeProvider');
 const ModelGenerator = require('./Helper/ModelCreate');
 const ActionTreeItem = require('./Helper/ActionItem');
@@ -70,10 +71,17 @@ async function activate(context) {
 			};
 			projectName = projectName.replace(/\s+/g, '_');
 			projectName = projectName.toLowerCase();
-			runCommandInTerminal(`django-admin startproject ${projectName}`);
-			runCommandInTerminal(`cd ${projectName}`);
-			runCommandInTerminal('code .');
-			vscode.window.showInformationMessage(`django-admin startproject ${projectName}`);
+			runCommand(`${pythonPath} -m django startproject ${projectName}`)
+				.then(output => {
+					runCommandInTerminal(`${pythonPath} -m django startproject ${projectName}`);
+					runCommandInTerminal(`cd ${projectName}`);
+					runCommandInTerminal('code .');
+					vscode.window.showInformationMessage(`python -m django startproject ${projectName}`);
+				})
+				.catch(error => {
+					vscode.window.showErrorMessage(error.message);
+				});
+
 		});
 	});
 
@@ -108,7 +116,7 @@ async function activate(context) {
 	const startApp = vscode.commands.registerCommand('django-tool.start-app', function () {
 		vscode.window.showInputBox({ prompt: "Enter App Name" }).then((appName) => {
 			// Remove white spaces from model name
-			if(appName.includes(" ")){
+			if (appName.includes(" ")) {
 				appName = appName.replaceAll(/\s+/g, '_');
 			}
 			if (!appName) {
@@ -184,7 +192,7 @@ async function activate(context) {
 				} else if (selectedOption === "Create Table") {
 					let modelName = await vscode.window.showInputBox({ prompt: "Enter Table Name" });
 					// Remove white spaces from model name
-					if(modelName.includes(" ")){
+					if (modelName.includes(" ")) {
 						modelName = modelName.replaceAll(/\s+/g, '_');
 					}
 					let Fields = [];
@@ -201,7 +209,7 @@ async function activate(context) {
 						} else if (selectedOption === "Add Field") {
 							let filedName = await vscode.window.showInputBox({ prompt: "Enter Field Name" });
 							// Remove white spaces from field name
-							if(filedName.includes(" ")){
+							if (filedName.includes(" ")) {
 								filedName = filedName.replaceAll(/\s+/g, '_');
 							}
 
@@ -304,6 +312,20 @@ function runCommandInTerminal(command) {
 
 	terminal.show();
 	terminal.sendText(command);
+}
+
+function runCommand(command) {
+	return new Promise((resolve, reject) => {
+		exec(command, (err, stdout, stderr) => {
+			if (err) {
+				reject(err);
+			} else if (stderr) {
+				reject(new Error(stderr));
+			} else {
+				resolve(stdout);
+			}
+		});
+	});
 }
 
 function deactivate() {
