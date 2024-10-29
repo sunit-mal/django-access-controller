@@ -80,7 +80,6 @@ class EndpointsProvider {
                         const include_urls = await this.extractIncludeUrls(includePath);
                         for (const url of include_urls) {
                             matches.push({
-
                                 name: pathName.endsWith('/') ? pathName + url.name : pathName + '/' + url.name,
                                 viewFunction: viewFunction,
                                 filePath: url.filePath,

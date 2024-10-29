@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2] - 2024-10-29
+### Fixed
+- fixed extra slash in endpoint view tab.
+
 ## [0.1.1] - 2024-10-29
 ### Fixed
 - In endpoint view section make it dynamic endpoint creator and Add Endpoint Refresh button.
@@ -33,3 +37,4 @@
 [0.0.9]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.0.9
 [0.1.0]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.0
 [0.1.1]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.1
+[0.1.2]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.2
