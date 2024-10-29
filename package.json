@@ -117,6 +117,16 @@
         }
       ]
     },
+    "menus": {
+      "view/title": [
+        {
+          "command": "django-tool.refresh-endpoint",
+          "when": "view == package-endpoints",
+          "title": "Refresh",
+          "icon": "resources/refresh.svg"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Django Access Controller",
