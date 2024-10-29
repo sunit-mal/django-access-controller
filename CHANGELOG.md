@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.1] - 2024-10-29
+### Fixed
+- In endpoint view section make it dynamic endpoint creator and Add Endpoint Refresh button.
+
 ## [0.1.0] - 2024-09-23
 ### Fixed
 - Fixed django create project command it now it replace with `python -m django startproject yourSite` from `django-admin startproject yourSite`.
@@ -28,3 +32,4 @@
 [0.0.8]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.0.8
 [0.0.9]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.0.9
 [0.1.0]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.0
+[0.1.1]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.1
