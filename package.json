@@ -3,8 +3,8 @@
   "displayName": "Django Access Controller",
   "description": "Django Access Controller is a Visual Studio Code extension that provides a set of commands to manage Django projects.",
   "publisher": "SUNITMAL",
-  "icon": "resources/extentionIcon.jpg",
-  "version": "0.1.2",
+  "icon": "resources/extentionIcon.png",
+  "version": "0.1.3",
   "engines": {
     "vscode": "^1.91.0"
   },

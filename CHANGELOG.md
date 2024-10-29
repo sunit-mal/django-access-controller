@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3] - 2024-10-29
+### Fixed
+- Change extension icon.
+
 ## [0.1.2] - 2024-10-29
 ### Fixed
 - fixed extra slash in endpoint view tab.
@@ -38,3 +42,4 @@
 [0.1.0]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.0
 [0.1.1]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.1
 [0.1.2]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.2
+[0.1.3]: https://github.com/sunit-mal/django-access-controller/releases/tag/v0.1.3
