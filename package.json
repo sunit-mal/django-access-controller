@@ -11,14 +11,13 @@
   "categories": [
     "Other",
     "Visualization",
-    "AI",
-    "Extension Packs"
+    "AI"
   ],
   "keywords": [
     "django",
-    "assitent",
+    "assistant",
     "django-controller",
-    "django-assitent",
+    "django-assistant",
     "one-click ready"
   ],
   "repository": {
